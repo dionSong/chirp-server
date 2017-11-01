@@ -4,20 +4,20 @@
 // console.log(__dirname); //Absolute value of the path to the currently running script
 
 // Core Module: path
-// let path = require('path'); //Require imports path module
-// console.log(path.dirname('app/assets.js'));
+// let path = require('path'); //Require imports path module into a variable
+// console.log(path.dirname('app/assets.js')); //now you can use dirname an other methods on that variable
 // console.log(path.extname('index.js'));
 // console.log(path.join('/foo', 'bar', 'bas/asdf', '..', 'quux')); //Makes a path and Goes to the previous directory on the '..' (Arguments must be strings)
 // console.log(path.join(__dirname, 'index.js')); //Value of the path the current script is in and then adds the index.js after, because of join
 
-//Core Module: fs
+//Core Module: fs (File System)
 // let fs = require('fs') //Imports the fs module into a variable
 // let myFilePath = path.join(__dirname, 'data.json'); //looks where the script is running and adds data.json to the path
 // fs.readFile(myFilePath, function(err, data) { //reads the myFilePath variable and has a function that has 2 parameters one to return an error and the other one to return the data, (if you dont use .tostring() the file returns a buffer)
 //     if(err) {
 //         console.log(err);
 //     } else {
-//         console.log(data.toString()); //data is a Buffer (Question what is a buffer?)
+//         console.log(data.toString()); //data is a Buffer 
 //     }
 // });
 
@@ -30,6 +30,8 @@
 //         console.log(data); //already a String
 //     }
 // });
+
+
 
 // Core Module: http
 
@@ -46,19 +48,118 @@
 // server.listen(3000); //3000, 8008, etc.
 
 
-//ExpressJS
-var express = require("express"); //Imports express module and assigns it to a var
+// //ExpressJS
+// var express = require("express"); //Imports express module and assigns it to a var
+// var app = express();
+
+// app.get('/chirps', function(req, res) {
+//     res.send("Hllo World!");
+// });
+
+// app.post('/chirps', function(req, res) {
+//     res.send("Hello World!");
+// });
+
+// app.listen(3000);
+
+//You can chain them like the following since you are using the same route
+// var express = require("express"); 
+// var app = express();
+// app.route('/chirps')
+//     .get(function(req,res){
+//         res.send("Hllo World!");
+//     }).post(function(req,res){
+//         res.send("Hello World!");
+//     });
+//     app.listen(3000);
+
+var express = require("express"); 
 var app = express();
+let path = require('path')
+let bodyParser = require('body-parser')
+let fs = require('fs')
 
-app.get('/chirps', function(req, res) {
-    res.send("Hllo World!");
-});
+const base = '/api/chirps'
+let pathVar = path.join(__dirname, 'data.json')
 
-app.post('/chirps', function(req, res) {
-    res.send("Hello World!");
-});
+app.route(base)
+    //get chirps
+    .get(function(req,res){
+        res.sendFile(pathVar); //sends the file in the pathVar route
+        
+    })
+    //get 1 chirp typing id in route
+    app.get(`${base}/:id`, function (req, res) {
+        fs.readFile(pathVar, 'utf-8', function (err, file) {
+            var parsedArray = JSON.parse(file);
+            var found = parsedArray.filter(function (chirp) { return chirp.id === req.params.id; });
+            
+            var chirp = JSON.stringify(found[0]);
+            res.send(chirp).end();
+        });
+    })
 
-app.listen(3000);
+    app.put(`${base}/:id`, function (req, res) {
+        fs.readFile(pathVar, 'utf-8', function (err, file) {
+            var parsedArray = JSON.parse(file);
+            var found = parsedArray.filter(function (chirp) { return chirp.id === req.params.id; });
+            
+            var chirp = JSON.stringify(found[0]);
+            
+            chirp = {"name":"daniel","id":"2","message":"hola"};
+            
+            let parsedChirp = JSON.parse(chirp);
+            console.log(parsedChirp);
+            res.send(chirp);
+            
+            // chirp = {"name":"kassadim","id":"2","message":"asdfsadfd"};
+            // JSON.parse(chirp);
+            // res.send(chirp).end();
+        });
+    })
+    // app.put(`${base}/:id`, function(req, res){
+    //     fs.readFile(pathVar, 'utf-8', function (err, file) {
+    //         var parsedArray = JSON.parse(file);
+    //         var found = parsedArray.filter(function (chirp) { return chirp.id === req.params.id; });
+            
+    //         var chirp = JSON.stringify(found[0]);
+    //         let updatedChirp = chirp.name = 'asdf'
+    //         res.send(chirp).end();
+    // })
+    app.listen(3000);
+
+
+
+
+    // app.route('/api/chirps/:id')
+    // .get(function(req,res){
+    //     let pathVar = path.join(__dirname, 'data.json')
+    //     // if (req.params === id(how do i get the id of data.json)) 
+    //     // than show the shirp with that id
+    //     console.log(req.params);
+        
+    //     res.sendFile(pathVar); //sends the file in the pathVar route
+        
+    // }).post(function(req,res){
+    //     res.send("Hello World!");
+    // });
+    // app.listen(3000);
+
+
+
+    // Request Body
+    // npm install body=parser --save
+
+    // var clientPath = path.join(__dirname, '../data.json');
+    // app.use(express.static(clientPath));
+
+    // res.set('Content-Type', 'text/plain'); Sets headers on the response
+
+    // res.sendStatus(200); Sets a status to the response, you can change the number of the status and respond with something
+
+    // REST API main types of routes 
+    // Collection: /api/auction
+    // Item: /api/auctions/id
 
 
 
@@ -67,13 +168,20 @@ app.listen(3000);
 
 
 
+// Questions
+// I couldnt get the middleware to work, explain please
+
+//explain bodyParser
+// fs.writeFile
 
 
-// - create chirp
-// - get all chirps
+
+
+// - create chirp 
+// - get all chirps  /api/chirps //Done
 // - delete chirp
 // - update chirp 
-// - get chirp
+// - get chirp /api/chirps/id //Done
 
 // collection url: /api/chirps
 // item url: /api/chirps/:id
