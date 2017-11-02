@@ -164,7 +164,17 @@ const ranID = function(req, res, next){
             
             var chirp = found[0];
 
-            
+            var foundIndex = -1;
+            parsedArray.map(function (chirp, i) {
+                if (chirp.id === req.params.id) {
+                    foundIndex = i;
+                }
+            });
+            if (foundIndex === -1) {
+                res.status(404).end();``
+                return;
+            }
+            parsedArray.splice(foundIndex, 1);
             
             // req.body = chirp
             
