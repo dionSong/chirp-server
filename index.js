@@ -156,10 +156,69 @@ const ranID = function(req, res, next){
         });
     });
 
+    //Update 1 chirp
+    app.put(base + "/:id", function (req, res) {
+        fs.readFile(pathVar, 'utf-8', function (err, file) {
+            var parsedArray = JSON.parse(file);
+            var found = parsedArray.filter(function (chirp) { return chirp.id === req.params.id; });
+            
+            var chirp = found[0];
+
+            
+            
+            // req.body = chirp
+            
+
+            let newChirp = req.body;
+            
+            
+          
+
+             chirp = newChirp;
+             
+             console.log(chirp);
+             parsedArray.push(chirp);
+             fs.writeFile(pathVar, JSON.stringify(parsedArray), function (err) {
+                if (err)
+                    throw err;
+                
+            });
+          
+
+          
+            // let updatedChirp = req.body
+            // console.log(updatedChirp);
+         
+          
+           
+            res.send(chirp).end();
+        });
+    
+    });
+    app.listen(3001);
+    
+
+    // app.update(base, function (req, res) {
+    //     fs.readFile(pathVar, 'utf-8', function (err, file) {
+    //         var parsedFile = JSON.parse(file);
+    //         var chirp = req.body;
+
+    //         var id = ranID();
+    //         chirp.id = id;
+
+    //         parsedFile.push(chirp);
+    //         fs.writeFile(pathVar, JSON.stringify(parsedFile), function (err) {
+    //             if (err)
+    //                 throw err;
+    //             res.status(201).send(chirp).end();
+    //         });
+    //     });
+    // });
 
 
 
-    app.listen(3000);
+
+
 
         // app.put(`${base}/:id`, function (req, res) {
     //     fs.readFile(pathVar, 'utf-8', function (err, file) {
