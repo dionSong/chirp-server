@@ -73,50 +73,112 @@
 //     });
 //     app.listen(3000);
 
-var express = require("express"); 
+var express = require("express");
 var app = express();
-let path = require('path')
-let bodyParser = require('body-parser')
-let fs = require('fs')
+let path = require('path');
+let bodyParser = require('body-parser');
+let fs = require('fs');
+let shortid_1 = require('short-id');
 
-const base = '/api/chirps'
-let pathVar = path.join(__dirname, 'data.json')
+const base = '/api/chirps';
+let pathVar = path.join(__dirname, 'data.json');
 
-app.route(base)
-    //get chirps
-    .get(function(req,res){
-        res.sendFile(pathVar); //sends the file in the pathVar route
-        
+const ranID = function(req, res, next){
+    return shortid_1.generate();
+    next();
+};
+
+    app
+    .disable('x-powered-by')
+    .use(function(req, res, next) {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Methods", "GET, POST, UPDATE, DELETE");
+        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        res.setHeader('Content-Type', 'application/json');
+        next();
     })
+    .use(bodyParser.json())
+    .use(bodyParser.urlencoded({ extended: true }));;
+
+// app.route(base)
+    //get chirps
+    app.get(base, function(req,res){
+        res.sendFile(pathVar); //sends the file in the pathVar route
+    });
     //get 1 chirp typing id in route
     app.get(`${base}/:id`, function (req, res) {
         fs.readFile(pathVar, 'utf-8', function (err, file) {
             var parsedArray = JSON.parse(file);
             var found = parsedArray.filter(function (chirp) { return chirp.id === req.params.id; });
             
-            var chirp = JSON.stringify(found[0]);
+            var chirp = found[0];
             res.send(chirp).end();
         });
-    })
-
-    app.put(`${base}/:id`, function (req, res) {
+    });
+    //post 1 chirp
+    app.post(base, function (req, res) {
         fs.readFile(pathVar, 'utf-8', function (err, file) {
-            var parsedArray = JSON.parse(file);
-            var found = parsedArray.filter(function (chirp) { return chirp.id === req.params.id; });
-            
-            var chirp = JSON.stringify(found[0]);
-            
-            chirp = {"name":"daniel","id":"2","message":"hola"};
-            
-            let parsedChirp = JSON.parse(chirp);
-            console.log(parsedChirp);
-            res.send(chirp);
-            
-            // chirp = {"name":"kassadim","id":"2","message":"asdfsadfd"};
-            // JSON.parse(chirp);
-            // res.send(chirp).end();
+            var parsedFile = JSON.parse(file);
+            var chirp = req.body;
+
+            var id = ranID();
+            chirp.id = id;
+
+            parsedFile.push(chirp);
+            fs.writeFile(pathVar, JSON.stringify(parsedFile), function (err) {
+                if (err)
+                    throw err;
+                res.status(201).send(chirp).end();
+            });
         });
-    })
+    });
+    //delete 1 chirp
+    app.delete(base + "/:id", function (req, res) {
+        fs.readFile(pathVar, 'utf-8', function (err, file) {
+            var fileParsed = JSON.parse(file);
+            var foundIndex = -1;
+            fileParsed.map(function (chirp, i) {
+                if (chirp.id === req.params.id) {
+                    foundIndex = i;
+                }
+            });
+            if (foundIndex === -1) {
+                res.status(404).end();
+                return;
+            }
+            fileParsed.splice(foundIndex, 1);
+            fs.writeFile(pathVar, JSON.stringify(fileParsed), 'utf-8', function (err) {
+                if (err)
+                    throw err;
+                
+                res.status(202).end();
+            });
+        });
+    });
+
+
+
+
+    app.listen(3000);
+
+        // app.put(`${base}/:id`, function (req, res) {
+    //     fs.readFile(pathVar, 'utf-8', function (err, file) {
+    //         var parsedArray = JSON.parse(file);
+    //         var found = parsedArray.filter(function (chirp) { return chirp.id === req.params.id; });
+            
+    //         var chirp = JSON.stringify(found[0]);
+            
+    //         chirp = {"name":"daniel","id":"2","message":"hola"};
+            
+    //         let parsedChirp = JSON.parse(chirp);
+    //         console.log(parsedChirp);
+    //         res.send(chirp);
+            
+    //         // chirp = {"name":"kassadim","id":"2","message":"asdfsadfd"};
+    //         // JSON.parse(chirp);
+    //         // res.send(chirp).end();
+    //     });
+    // })
     // app.put(`${base}/:id`, function(req, res){
     //     fs.readFile(pathVar, 'utf-8', function (err, file) {
     //         var parsedArray = JSON.parse(file);
@@ -126,8 +188,6 @@ app.route(base)
     //         let updatedChirp = chirp.name = 'asdf'
     //         res.send(chirp).end();
     // })
-    app.listen(3000);
-
 
 
 
@@ -177,9 +237,9 @@ app.route(base)
 
 
 
-// - create chirp 
+// - create chirp //Done
 // - get all chirps  /api/chirps //Done
-// - delete chirp
+// - delete chirp //Done
 // - update chirp 
 // - get chirp /api/chirps/id //Done
 
